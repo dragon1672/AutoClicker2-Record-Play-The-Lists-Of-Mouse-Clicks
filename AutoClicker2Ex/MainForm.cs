@@ -7,6 +7,8 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Threading;
 using System.Runtime.InteropServices;
+using WindowsInput;
+using WindowsInput.Native;
 
 
 namespace Auto_Clicker
@@ -765,19 +767,8 @@ namespace Auto_Clicker
                 if (m_clicking == false)
                     return;
                 
-                KEYBOARDINPUT keyboard_input = new KEYBOARDINPUT();
-                keyboard_input.type = INPUT_KEYBOARD; //Keyboard
-                keyboard_input.keyboardInput.wVk = Z_KEY;
-                keyboard_input.keyboardInput.dwFlags = KEYBOARDEVENT_KEYDOWN;
-                keyboard_input.keyboardInput.wScan = 0; //use VirtualKey
-                
-                
-                //Send a right click down followed by a right click up to simulate a 
-                //full right click
-                SendInput(1, ref keyboard_input, Marshal.SizeOf(keyboard_input));
-                Thread.Sleep(10); // Need for Windows to recognize a click
-                keyboard_input.keyboardInput.dwFlags = KEYBOARDEVENT_KEYUP;
-                SendInput(1, ref keyboard_input, Marshal.SizeOf(keyboard_input));
+                InputSimulator s = new InputSimulator();
+                s.Keyboard.KeyPress(VirtualKeyCode.VK_Z);
             }
             
             public void ClickEnterKey()
@@ -785,19 +776,8 @@ namespace Auto_Clicker
                 if (m_clicking == false)
                     return;
                 
-                KEYBOARDINPUT keyboard_input = new KEYBOARDINPUT();
-                keyboard_input.type = INPUT_KEYBOARD; //Keyboard
-                keyboard_input.keyboardInput.wVk = VK_RETURN;
-                keyboard_input.keyboardInput.dwFlags = KEYBOARDEVENT_KEYDOWN;
-                keyboard_input.keyboardInput.wScan = 0; //use VirtualKey
-                
-                
-                //Send a right click down followed by a right click up to simulate a 
-                //full right click
-                SendInput(1, ref keyboard_input, Marshal.SizeOf(keyboard_input));
-                Thread.Sleep(10); // Need for Windows to recognize a click
-                keyboard_input.keyboardInput.dwFlags = KEYBOARDEVENT_KEYUP;
-                SendInput(1, ref keyboard_input, Marshal.SizeOf(keyboard_input));
+                InputSimulator s = new InputSimulator();
+                s.Keyboard.KeyPress(VirtualKeyCode.RETURN);
             }
 
             #endregion
