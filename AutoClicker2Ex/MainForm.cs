@@ -247,6 +247,62 @@ namespace Auto_Clicker
                 MessageBox.Show("Current Coordinates are not valid", "Invalid Input", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        
+        private void AddPositionButtonEnter_Click(object sender, EventArgs e)
+        {
+            if (CurrentPositionIsValid(QueuedXPositionTextBox.Text, QueuedYPositionTextBox.Text))
+            {
+                if (IsValidNumericalInput(SleepTimeTextBox.Text))
+                {
+                    //Add item holding coordinates, right/left click and sleep time to list view
+                    //holding all queued clicks
+                    ListViewItem item = new ListViewItem(QueuedXPositionTextBox.Text);
+                    item.SubItems.Add(QueuedYPositionTextBox.Text);
+                    string clickType = "ENTER";
+
+                    int sleepTime = Convert.ToInt32(SleepTimeTextBox.Text);
+                    item.SubItems.Add(clickType);
+                    item.SubItems.Add(sleepTime.ToString());
+                    PositionsListView.Items.Add(item);
+                }
+                else
+                {
+                    MessageBox.Show("Sleep time is not a valid positive integer", "Invalid Input", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Current Coordinates are not valid", "Invalid Input", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        
+        private void AddPositionButtonZ_Click(object sender, EventArgs e)
+        {
+            if (CurrentPositionIsValid(QueuedXPositionTextBox.Text, QueuedYPositionTextBox.Text))
+            {
+                if (IsValidNumericalInput(SleepTimeTextBox.Text))
+                {
+                    //Add item holding coordinates, right/left click and sleep time to list view
+                    //holding all queued clicks
+                    ListViewItem item = new ListViewItem(QueuedXPositionTextBox.Text);
+                    item.SubItems.Add(QueuedYPositionTextBox.Text);
+                    string clickType = "Z";
+
+                    int sleepTime = Convert.ToInt32(SleepTimeTextBox.Text);
+                    item.SubItems.Add(clickType);
+                    item.SubItems.Add(sleepTime.ToString());
+                    PositionsListView.Items.Add(item);
+                }
+                else
+                {
+                    MessageBox.Show("Sleep time is not a valid positive integer", "Invalid Input", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Current Coordinates are not valid", "Invalid Input", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
         /// <summary>
         /// Assign all points in the queue to the ClickHelper and start the thread
@@ -537,22 +593,39 @@ namespace Auto_Clicker
             public static extern void mouse_event(int dwFlags, int dx, int dy, int dwData, int dwExtraInfo);
 
             [DllImport("user32.dll", SetLastError = true)]
-            public static extern int SendInput(int nInputs, ref INPUT pInputs, int cbSize);
+            public static extern int SendInput(int nInputs, ref MOUSEINPUT pInputs, int cbSize);
+            
+            [DllImport("user32.dll", SetLastError = true)]
+            public static extern int SendInput(int nInputs, ref KEYBOARDINPUT pInputs, int cbSize);
 
             /// <summary>
             /// Structure for SendInput function holding relevant mouse coordinates and information
             /// </summary>
-            public struct INPUT
+            public struct MOUSEINPUT
             {
                 public uint type;
-                public MOUSEINPUT mi;
+                public MOUSEINPUTDATA mi;
+            };
 
+            public struct KEYBOARDINPUT
+            {
+                public uint type;
+                public KEYBOARDINPUTDATA keyboardInput;
+            };
+
+            public struct KEYBOARDINPUTDATA
+            {
+                public short wVk;
+                public short wScan;
+                public int dwFlags;
+                public int time;
+                public IntPtr dwExtraInfo;
             };
 
             /// <summary>
             /// Structure for SendInput function holding coordinates of the click and other information
             /// </summary>
-            public struct MOUSEINPUT
+            public struct MOUSEINPUTDATA
             {
                 public int dx;
                 public int dy;
@@ -564,12 +637,18 @@ namespace Auto_Clicker
 
             //Constants for use in SendInput and mouse_event
             public const int INPUT_MOUSE = 0x0000;
+            public const int INPUT_KEYBOARD = 0x0001;
+            
             public const int MOUSEEVENTF_LEFTDOWN = 0x0002;
             public const int MOUSEEVENTF_LEFTUP = 0x0004;
             public const int MOUSEEVENTF_RIGHTDOWN = 0x0008;
             public const int MOUSEEVENTF_RIGHTUP = 0x0010;
             public const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;
             public const int MOUSEEVENTF_MIDDLEUP = 0x0040;
+            public const int KEYBOARDEVENT_KEYDOWN = 0x0000;
+            public const int KEYBOARDEVENT_KEYUP = 0x0002;
+            public const int VK_RETURN = 0x0D;
+            public const int Z_KEY = 0x5A;
 
             #endregion
 
@@ -613,21 +692,21 @@ namespace Auto_Clicker
                     return;
 
                 //Initialise INPUT object with corresponding values for a left click
-                INPUT input = new INPUT();
-                input.type = INPUT_MOUSE;
-                input.mi.dx = 0;
-                input.mi.dy = 0;
-                input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-                input.mi.dwExtraInfo = IntPtr.Zero;
-                input.mi.mouseData = 0;
-                input.mi.time = 0;
+                MOUSEINPUT mouseinput = new MOUSEINPUT();
+                mouseinput.type = INPUT_MOUSE;
+                mouseinput.mi.dx = 0;
+                mouseinput.mi.dy = 0;
+                mouseinput.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+                mouseinput.mi.dwExtraInfo = IntPtr.Zero;
+                mouseinput.mi.mouseData = 0;
+                mouseinput.mi.time = 0;
 
                 //Send a left click down followed by a left click up to simulate a 
                 //full left click
-                SendInput(1, ref input, Marshal.SizeOf(input));
+                SendInput(1, ref mouseinput, Marshal.SizeOf(mouseinput));
                 Thread.Sleep(10); // Need for Windows to recognize a click
-                input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
-                SendInput(1, ref input, Marshal.SizeOf(input));
+                mouseinput.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+                SendInput(1, ref mouseinput, Marshal.SizeOf(mouseinput));
 
             }
 
@@ -641,21 +720,21 @@ namespace Auto_Clicker
                     return;
 
                 //Initialise INPUT object with corresponding values for a right click
-                INPUT input = new INPUT();
-                input.type = INPUT_MOUSE;
-                input.mi.dx = 0;
-                input.mi.dy = 0;
-                input.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
-                input.mi.dwExtraInfo = IntPtr.Zero;
-                input.mi.mouseData = 0;
-                input.mi.time = 0;
+                MOUSEINPUT mouseinput = new MOUSEINPUT();
+                mouseinput.type = INPUT_MOUSE;
+                mouseinput.mi.dx = 0;
+                mouseinput.mi.dy = 0;
+                mouseinput.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
+                mouseinput.mi.dwExtraInfo = IntPtr.Zero;
+                mouseinput.mi.mouseData = 0;
+                mouseinput.mi.time = 0;
 
                 //Send a right click down followed by a right click up to simulate a 
                 //full right click
-                SendInput(1, ref input, Marshal.SizeOf(input));
+                SendInput(1, ref mouseinput, Marshal.SizeOf(mouseinput));
                 Thread.Sleep(10); // Need for Windows to recognize a click
-                input.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
-                SendInput(1, ref input, Marshal.SizeOf(input));
+                mouseinput.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
+                SendInput(1, ref mouseinput, Marshal.SizeOf(mouseinput));
             }
 
             public void ClickMiddleMouseButtonSendInput()
@@ -664,21 +743,61 @@ namespace Auto_Clicker
                     return;
 
                 //Initialise INPUT object with corresponding values for a right click
-                INPUT input = new INPUT();
-                input.type = INPUT_MOUSE;
-                input.mi.dx = 0;
-                input.mi.dy = 0;
-                input.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
-                input.mi.dwExtraInfo = IntPtr.Zero;
-                input.mi.mouseData = 0;
-                input.mi.time = 0;
+                MOUSEINPUT mouseinput = new MOUSEINPUT();
+                mouseinput.type = INPUT_MOUSE;
+                mouseinput.mi.dx = 0;
+                mouseinput.mi.dy = 0;
+                mouseinput.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
+                mouseinput.mi.dwExtraInfo = IntPtr.Zero;
+                mouseinput.mi.mouseData = 0;
+                mouseinput.mi.time = 0;
 
                 //Send a right click down followed by a right click up to simulate a 
                 //full right click
-                SendInput(1, ref input, Marshal.SizeOf(input));
+                SendInput(1, ref mouseinput, Marshal.SizeOf(mouseinput));
                 Thread.Sleep(10); // Need for Windows to recognize a click
-                input.mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
-                SendInput(1, ref input, Marshal.SizeOf(input));
+                mouseinput.mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
+                SendInput(1, ref mouseinput, Marshal.SizeOf(mouseinput));
+            }
+            
+            public void ClickLetterZ()
+            {
+                if (m_clicking == false)
+                    return;
+                
+                KEYBOARDINPUT keyboard_input = new KEYBOARDINPUT();
+                keyboard_input.type = INPUT_KEYBOARD; //Keyboard
+                keyboard_input.keyboardInput.wVk = Z_KEY;
+                keyboard_input.keyboardInput.dwFlags = KEYBOARDEVENT_KEYDOWN;
+                keyboard_input.keyboardInput.wScan = 0; //use VirtualKey
+                
+                
+                //Send a right click down followed by a right click up to simulate a 
+                //full right click
+                SendInput(1, ref keyboard_input, Marshal.SizeOf(keyboard_input));
+                Thread.Sleep(10); // Need for Windows to recognize a click
+                keyboard_input.keyboardInput.dwFlags = KEYBOARDEVENT_KEYUP;
+                SendInput(1, ref keyboard_input, Marshal.SizeOf(keyboard_input));
+            }
+            
+            public void ClickEnterKey()
+            {
+                if (m_clicking == false)
+                    return;
+                
+                KEYBOARDINPUT keyboard_input = new KEYBOARDINPUT();
+                keyboard_input.type = INPUT_KEYBOARD; //Keyboard
+                keyboard_input.keyboardInput.wVk = VK_RETURN;
+                keyboard_input.keyboardInput.dwFlags = KEYBOARDEVENT_KEYDOWN;
+                keyboard_input.keyboardInput.wScan = 0; //use VirtualKey
+                
+                
+                //Send a right click down followed by a right click up to simulate a 
+                //full right click
+                SendInput(1, ref keyboard_input, Marshal.SizeOf(keyboard_input));
+                Thread.Sleep(10); // Need for Windows to recognize a click
+                keyboard_input.keyboardInput.dwFlags = KEYBOARDEVENT_KEYUP;
+                SendInput(1, ref keyboard_input, Marshal.SizeOf(keyboard_input));
             }
 
             #endregion
@@ -718,11 +837,11 @@ namespace Auto_Clicker
                             }
                             else if (ClickType[j].Equals("Z"))
                             {
-                                // TODO send z key
+                                ClickLetterZ();
                             }
                             else if (ClickType[j].Equals("ENTER"))
                             {
-                                // TODO send enter
+                                ClickEnterKey();
                             }
                             else
                             {
