@@ -708,17 +708,30 @@ namespace Auto_Clicker
                             {
                                 ClickRightMouseButtonSendInput();
                             }
-                            else
-                            if (ClickType[j].Equals("M"))
+                            else if (ClickType[j].Equals("M"))
                             {
                                 ClickMiddleMouseButtonSendInput();
                             }
-                            else
+                            else if (ClickType[j].Equals("L"))
                             {
                                 ClickLeftMouseButtonSendInput();
                             }
+                            else if (ClickType[j].Equals("Z"))
+                            {
+                                // TODO send z key
+                            }
+                            else if (ClickType[j].Equals("ENTER"))
+                            {
+                                // TODO send enter
+                            }
+                            else
+                            {
+                                throw new ArgumentException(string.Format("Unknown ClickType %s", ClickType[j]));
+                            }
+
                             Thread.Sleep(Times[j]);
                         }
+
                         i++;
                     }
                 }
